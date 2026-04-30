@@ -36,6 +36,7 @@ class ResUsers(models.Model):
             'res_model': 'muk_mcp.generate_key',
             'views': [(False, 'form')],
             'target': 'new',
+            'context': {'default_user_id': self.id},
         }
 
     def action_revoke_mcp_sessions(self):

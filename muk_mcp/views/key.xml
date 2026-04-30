@@ -16,7 +16,7 @@
 							</div>
 							<small>Scope: <field name="scope"/></small>
 						</div>
-						<button name="unlink" type="object" string="Delete" class="btn btn-secondary ms-auto my-auto"/>
+						<button name="unlink" type="object" string="Delete" class="btn btn-secondary ms-auto my-auto" groups="base.group_system"/>
 					</t>
 				</templates>
 			</kanban>
