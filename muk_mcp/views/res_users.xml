@@ -5,9 +5,9 @@
 	<record id="view_users_form_simple" model="ir.ui.view">
 		<field name="name">res.users.form.simple</field>
 		<field name="model">res.users</field>
-		<field name="inherit_id" ref="base.view_users_form_simple_modif"/>
+		<field name="inherit_id" ref="base.view_users_form"/>
 		<field name="arch" type="xml">
-			<xpath expr="//page[@name='page_account_security']" position="inside">
+			<xpath expr="//page[@name='account_security']" position="inside">
 				<group string="MCP Keys">
 					<div class="text-muted" colspan="2">
 						Connect AI assistants.
