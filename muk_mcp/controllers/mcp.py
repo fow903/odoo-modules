@@ -145,15 +145,14 @@ class MCPController(http.Controller):
                     'Session required',
                     request_id=request_id,
                 )
-            if (
-                not (session := self._get_session(sid)) or 
-                not session.initialized
-            ):
+            if not (session := self._get_session(sid)):
                 return protocol.make_jsonrpc_error(
                     common.JSONRPC_INVALID_REQUEST,
-                    'Session not initialized',
+                    'Session not found or expired',
                     request_id=request_id,
                 )
+            if not session.initialized:
+                session.write({'initialized': True})
         is_tool_call = method == 'tools/call'
         start = time.time()
         try:
