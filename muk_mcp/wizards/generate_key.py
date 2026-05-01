@@ -18,6 +18,13 @@ class MCPKeyWizard(models.TransientModel):
         required=True,
     )
 
+    user_id = fields.Many2one(
+        comodel_name='res.users',
+        string="User",
+        required=True,
+        default=lambda self: self.env.user,
+    )
+
     scope = fields.Selection(
         selection=[
             ('read', "Read Only"),
@@ -48,7 +55,7 @@ class MCPKeyWizard(models.TransientModel):
         key_model = self.env['muk_mcp.key']
         key_model.sudo().create({
             'name': self.name,
-            'user_id': self.env.uid,
+            'user_id': self.user_id.id,
             'key_hash': key_model._hash_key(raw_key),
             'key_prefix': raw_key[:8],
             'scope': self.scope,

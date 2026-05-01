@@ -9,6 +9,7 @@
 			<form>
 				<group>
 					<field name="name" placeholder="e.g. Claude Desktop, Cursor"/>
+					<field name="user_id"/>
 					<field name="scope"/>
 					<field name="rate_limit"/>
 				</group>
