@@ -68,6 +68,13 @@
                             class="btn-link mt-3"
                         />
 					</setting>
+					<setting id="mcp_oauth_info" string="Claude Code Web (OAuth)">
+						<div class="text-muted">
+							Each user generates their own OAuth credentials in their profile
+							(<strong>Settings → Users → Account Security → Claude Code Web</strong>).
+							Claude Code Web only needs the server URL to connect.
+						</div>
+					</setting>
 				</block>
 			</xpath>
 		</field>

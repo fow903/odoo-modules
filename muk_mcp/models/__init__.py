@@ -3,6 +3,7 @@ from . import key
 from . import log
 from . import mail_message
 from . import notification
+from . import oauth
 from . import tool
 from . import session
 from . import res_config_settings

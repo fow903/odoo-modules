@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+
+	<template id="oauth_authorize_form" name="MCP OAuth Consent">
+		<html>
+			<head>
+				<meta charset="utf-8"/>
+				<meta name="viewport" content="width=device-width, initial-scale=1"/>
+				<title>Authorize MCP Access</title>
+				<link rel="stylesheet" href="/web/static/lib/bootstrap/css/bootstrap.min.css"/>
+				<style>
+					body { background: #f8f9fa; }
+					.consent-card {
+						max-width: 460px;
+						margin: 80px auto;
+						border-radius: 12px;
+						padding: 40px;
+						background: #fff;
+						box-shadow: 0 4px 24px rgba(0,0,0,.08);
+					}
+					.scope-badge {
+						display: inline-block;
+						padding: 2px 10px;
+						border-radius: 20px;
+						font-size: .85rem;
+						font-weight: 600;
+					}
+					.scope-write { background:#fff3cd; color:#856404; }
+					.scope-read  { background:#d1ecf1; color:#0c5460; }
+				</style>
+			</head>
+			<body>
+				<div class="container">
+					<div class="consent-card">
+						<div class="text-center mb-4">
+							<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="#6c757d" viewBox="0 0 16 16">
+								<path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+							</svg>
+							<h4 class="mt-3 mb-1">Authorize Access</h4>
+							<p class="text-muted mb-0">An application is requesting MCP access</p>
+						</div>
+
+						<div class="alert alert-light border mb-4">
+							<div class="row g-2">
+								<div class="col-4 text-muted">Application</div>
+								<div class="col-8 fw-semibold" t-esc="client_id"/>
+								<div class="col-4 text-muted">Permission</div>
+								<div class="col-8">
+									<span t-if="scope == 'read'" class="scope-badge scope-read">Read Only</span>
+									<span t-else="" class="scope-badge scope-write">Read &amp; Write</span>
+								</div>
+							</div>
+						</div>
+
+						<form method="post" action="/mcp/oauth/authorize">
+							<input type="hidden" name="client_id"             t-att-value="client_id"/>
+							<input type="hidden" name="redirect_uri"          t-att-value="redirect_uri"/>
+							<input type="hidden" name="state"                 t-att-value="state"/>
+							<input type="hidden" name="scope"                 t-att-value="scope"/>
+							<input type="hidden" name="code_challenge"        t-att-value="code_challenge"/>
+							<input type="hidden" name="code_challenge_method" t-att-value="code_challenge_method"/>
+							<input type="hidden" name="csrf_token"            t-att-value="csrf_token"/>
+							<div class="d-grid gap-2">
+								<button type="submit" name="action" value="allow" class="btn btn-primary">
+									Allow Access
+								</button>
+								<button type="submit" name="action" value="deny" class="btn btn-outline-secondary">
+									Deny
+								</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</body>
+		</html>
+	</template>
+
+</odoo>

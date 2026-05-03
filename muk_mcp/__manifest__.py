@@ -34,6 +34,8 @@
         'views/session.xml',
         'views/tool.xml',
         'views/connect.xml',
+        'views/show_oauth.xml',
+        'views/oauth_authorize.xml',
         'views/res_config_settings.xml',
         'views/res_users.xml',
         'views/playground.xml',

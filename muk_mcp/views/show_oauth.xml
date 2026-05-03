@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+
+	<record id="view_show_oauth_form" model="ir.ui.view">
+		<field name="name">muk_mcp.oauth.show.form</field>
+		<field name="model">muk_mcp.oauth.show</field>
+		<field name="arch" type="xml">
+			<form create="false" edit="false">
+				<div class="alert alert-warning mb-3" role="alert">
+					<strong>Copy these credentials now.</strong>
+					The Client Secret will not be shown again.
+				</div>
+				<group>
+					<field name="client_id"     widget="CopyClipboardChar" string="Client ID"/>
+					<field name="client_secret" widget="CopyClipboardChar" string="Client Secret"/>
+				</group>
+				<footer>
+					<button string="Done" class="btn-primary" special="cancel"/>
+				</footer>
+			</form>
+		</field>
+	</record>
+
+</odoo>
