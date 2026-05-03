@@ -76,4 +76,111 @@
 		</html>
 	</template>
 
+
+	<template id="oauth_callback_success" name="MCP OAuth Callback Success">
+		<html>
+			<head>
+				<meta charset="utf-8"/>
+				<meta name="viewport" content="width=device-width, initial-scale=1"/>
+				<title>MCP Access Granted</title>
+				<link rel="stylesheet" href="/web/static/lib/bootstrap/css/bootstrap.min.css"/>
+				<style>
+					body { background: #f8f9fa; }
+					.result-card {
+						max-width: 520px;
+						margin: 80px auto;
+						border-radius: 12px;
+						padding: 40px;
+						background: #fff;
+						box-shadow: 0 4px 24px rgba(0,0,0,.08);
+					}
+					.token-box {
+						font-family: monospace;
+						font-size: .82rem;
+						background: #f1f3f5;
+						border-radius: 8px;
+						padding: 12px 16px;
+						word-break: break-all;
+					}
+				</style>
+			</head>
+			<body>
+				<div class="container">
+					<div class="result-card">
+						<div class="text-center mb-4">
+							<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="#198754" viewBox="0 0 16 16">
+								<path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+							</svg>
+							<h4 class="mt-3 mb-1">Access Granted</h4>
+							<p class="text-muted mb-0">Your MCP access token has been created.</p>
+						</div>
+
+						<div class="alert alert-warning py-2">
+							<strong>Copy this token now.</strong> It will not be shown again.
+						</div>
+
+						<label class="form-label fw-semibold">Access Token</label>
+						<div class="token-box mb-3" t-esc="access_token"/>
+
+						<div class="alert alert-light border mb-3">
+							<div class="row g-2">
+								<div class="col-4 text-muted">MCP Endpoint</div>
+								<div class="col-8 fw-semibold" style="font-size:.85rem;" t-esc="mcp_url"/>
+								<div class="col-4 text-muted">Scope</div>
+								<div class="col-8 fw-semibold" t-esc="scope"/>
+							</div>
+						</div>
+
+						<p class="text-muted small mb-0">
+							Use this token as the <code>Authorization: Bearer &lt;token&gt;</code>
+							header when connecting your MCP client to <span t-esc="mcp_url"/>.
+						</p>
+					</div>
+				</div>
+			</body>
+		</html>
+	</template>
+
+	<template id="oauth_callback_error" name="MCP OAuth Callback Error">
+		<html>
+			<head>
+				<meta charset="utf-8"/>
+				<meta name="viewport" content="width=device-width, initial-scale=1"/>
+				<title>MCP Authorization Error</title>
+				<link rel="stylesheet" href="/web/static/lib/bootstrap/css/bootstrap.min.css"/>
+				<style>
+					body { background: #f8f9fa; }
+					.result-card {
+						max-width: 460px;
+						margin: 80px auto;
+						border-radius: 12px;
+						padding: 40px;
+						background: #fff;
+						box-shadow: 0 4px 24px rgba(0,0,0,.08);
+					}
+				</style>
+			</head>
+			<body>
+				<div class="container">
+					<div class="result-card">
+						<div class="text-center mb-4">
+							<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="#dc3545" viewBox="0 0 16 16">
+								<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+								<path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+							</svg>
+							<h4 class="mt-3 mb-1">Authorization Failed</h4>
+						</div>
+						<div class="alert alert-danger">
+							<strong t-esc="error"/>
+							<p class="mb-0 mt-1" t-if="error_description" t-esc="error_description"/>
+						</div>
+						<div class="text-center">
+							<a href="/mcp/oauth/authorize" class="btn btn-outline-primary btn-sm">Try again</a>
+						</div>
+					</div>
+				</div>
+			</body>
+		</html>
+	</template>
+
 </odoo>

@@ -177,6 +177,52 @@ class MCPOAuthController(http.Controller):
         )
 
     @http.route(
+        '/api/mcp/auth_callback',
+        type='http', auth='public', methods=['GET'],
+        csrf=False, save_session=False,
+    )
+    def auth_callback(
+        self, code=None, state=None, error=None,
+        error_description=None, **kw
+    ):
+        if error:
+            return request.render('muk_mcp.oauth_callback_error', {
+                'error': error,
+                'error_description': error_description or '',
+            })
+
+        if not code:
+            return Response('Bad request: missing code', status=400)
+
+        env = api.Environment(request.env.cr, SUPERUSER_ID, {})
+        auth_code = env['muk_mcp.oauth_code'].consume_code(code)
+        if not auth_code:
+            return request.render('muk_mcp.oauth_callback_error', {
+                'error': 'invalid_grant',
+                'error_description': 'Authorization code is invalid or expired.',
+            })
+
+        rate_limit = int(env['ir.config_parameter'].get_param(
+            'muk_mcp.rate_limit_requests', 60
+        ))
+        raw_key = secrets.token_urlsafe(32)
+        env['muk_mcp.key'].create({
+            'name': f'OAuth ({auth_code.user_id.name})',
+            'user_id': auth_code.user_id.id,
+            'key_hash': hashlib.sha256(raw_key.encode()).hexdigest(),
+            'key_prefix': raw_key[:8],
+            'scope': auth_code.scope if auth_code.scope in ('read', 'write') else 'write',
+            'rate_limit': rate_limit,
+        })
+
+        base = self._base_url()
+        return request.render('muk_mcp.oauth_callback_success', {
+            'access_token': raw_key,
+            'mcp_url': f'{base}/mcp',
+            'scope': auth_code.scope or 'write',
+        })
+
+    @http.route(
         '/mcp/oauth/token',
         type='http', auth='public', methods=['POST'],
         csrf=False, save_session=False,
