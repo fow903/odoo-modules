@@ -42,6 +42,11 @@ class Connect(models.TransientModel):
         string="OpenCode JSON",
     )
 
+    claude_web_url = fields.Char(
+        compute='_compute_snippets',
+        string="Claude Web URL",
+    )
+
     bearer_key = fields.Char(
         string="Bearer Key",
         readonly=True,
@@ -122,3 +127,7 @@ class Connect(models.TransientModel):
                 },
                 indent=2
             )
+            if record.bearer_key:
+                record.claude_web_url = f'{record.mcp_url}?token={record.bearer_key}'
+            else:
+                record.claude_web_url = False

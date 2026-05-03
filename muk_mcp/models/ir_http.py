@@ -18,9 +18,17 @@ class IrHttp(models.AbstractModel):
     @classmethod
     def _auth_method_mcp(cls):
         env = api.Environment(request.env.cr, SUPERUSER_ID, {})
+        token = None
         header = request.httprequest.headers.get('Authorization', '')
         match = re.match(r'^bearer\s+(.+)$', header, re.IGNORECASE)
-        if not (token := match and match.group(1).strip()):
+        if match:
+            token = match.group(1).strip()
+        if not token:
+            token = (
+                request.httprequest.args.get('token') or
+                request.httprequest.args.get('api_key')
+            )
+        if not token:
             raise werkzeug.exceptions.Unauthorized()
         if not (mcp_key := env['muk_mcp.key'].authenticate(token)):
             raise werkzeug.exceptions.Unauthorized()
