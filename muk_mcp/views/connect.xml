@@ -43,6 +43,19 @@
 						<page string="Cursor" name="cursor">
 							<field name="cursor_json" widget="text" readonly="1" nolabel="1"/>
 						</page>
+						<page string="Claude Web" name="claude_web">
+							<p class="text-muted" invisible="bearer_key">
+								Generate a Bearer Key first, then copy the URL below into Claude Web's
+								MCP server settings.
+							</p>
+							<div invisible="not bearer_key">
+								<p class="text-muted mb-2">
+									Paste this URL in Claude Web under
+									<strong>Settings → Integrations → Add MCP server</strong>.
+								</p>
+								<field name="claude_web_url" widget="CopyClipboardChar" readonly="1" nolabel="1"/>
+							</div>
+						</page>
 					</notebook>
 				</sheet>
 				<footer>
