@@ -1,5 +1,7 @@
 import hashlib
 import json
+import re
+import urllib.parse
 
 from odoo.tests import HttpCase, tagged
 
@@ -172,6 +174,52 @@ class TestMcpOAuth(HttpCase):
         })
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json()['error'], 'invalid_client')
+
+    def test_consent_redirects_back_to_external_client(self):
+        """Regression: after consent the browser must be redirected to the
+        external client host (Claude), not stripped to this server's own
+        path. Odoo's request.redirect(local=True) default caused the code
+        to land on our own /api/mcp/auth_callback, so Claude never got it."""
+        registration = self._register_public_client()
+        client_id = registration['client_id']
+        challenge = 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM'
+
+        self.env['res.users'].create({
+            'name': 'Consent User',
+            'login': 'mcp_consent',
+            'password': 'mcp_consent_pw',
+        })
+        self.authenticate('mcp_consent', 'mcp_consent_pw')
+
+        authorize_url = (
+            '/mcp/oauth/authorize?response_type=code'
+            f'&client_id={client_id}'
+            '&redirect_uri=' + urllib.parse.quote(self.CLAUDE_REDIRECT, safe='')
+            + f'&state=xyz&code_challenge={challenge}'
+            '&code_challenge_method=S256'
+        )
+        form = self.url_open(authorize_url).text
+        match = re.search(r'name="csrf_token"\s+value="([^"]+)"', form)
+        self.assertTrue(match, 'CSRF token not found in consent form')
+
+        response = self.url_open('/mcp/oauth/authorize', data={
+            'client_id': client_id,
+            'redirect_uri': self.CLAUDE_REDIRECT,
+            'state': 'xyz',
+            'scope': 'write',
+            'code_challenge': challenge,
+            'code_challenge_method': 'S256',
+            'action': 'allow',
+            'csrf_token': match.group(1),
+        }, allow_redirects=False)
+
+        self.assertIn(response.status_code, (302, 303))
+        location = response.headers.get('Location', '')
+        self.assertTrue(
+            location.startswith('https://claude.ai/api/mcp/auth_callback'),
+            f'Expected redirect back to Claude, got: {location!r}',
+        )
+        self.assertIn('code=', location)
 
     def test_authorize_rejects_unregistered_redirect_uri(self):
         registration = self._register_public_client()

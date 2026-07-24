@@ -225,24 +225,28 @@ class MCPOAuthController(http.Controller):
         if not request.validate_csrf(csrf_token):
             return Response('CSRF check failed', status=403)
 
-        if not client_id or not redirect_uri or action == 'deny':
-            params = urllib.parse.urlencode({
-                'error': 'access_denied',
-                'state': state or '',
-            })
-            return request.redirect(f'{redirect_uri}?{params}')
+        if not client_id or not redirect_uri:
+            return Response('Bad request: missing required parameters', status=400)
 
         client = self._resolve_client(client_id)
         if not client:
-            params = urllib.parse.urlencode({
-                'error': 'access_denied',
-                'error_description': 'Unknown client_id',
-                'state': state or '',
-            })
-            return request.redirect(f'{redirect_uri}?{params}')
+            return Response('Unknown client_id', status=400)
 
+        # Validate the redirect target BEFORE any external redirect, both to
+        # satisfy the OAuth spec and to avoid an open-redirect vector.
         if not client['redirect_ok'](redirect_uri):
             return Response('Invalid redirect_uri', status=400)
+
+        if action == 'deny':
+            params = urllib.parse.urlencode({
+                'error': 'access_denied',
+                'state': state or '',
+            })
+            # local=False: redirect_uri points at the external client
+            # (e.g. https://claude.ai/...). Odoo strips the host when
+            # local=True (the default), which would send the browser to
+            # this server's own path instead of back to the client.
+            return request.redirect(f'{redirect_uri}?{params}', local=False)
 
         # The token identity is bound to the authenticated browser user,
         # NOT to whoever owns the client_id. This lets a single org-wide
@@ -259,8 +263,11 @@ class MCPOAuthController(http.Controller):
         params = {'code': raw_code}
         if state:
             params['state'] = state
+        # local=False so the browser is sent back to the external client
+        # (Claude) with the code, instead of to this server's own domain.
         return request.redirect(
-            f'{redirect_uri}?{urllib.parse.urlencode(params)}'
+            f'{redirect_uri}?{urllib.parse.urlencode(params)}',
+            local=False,
         )
 
     @http.route(
