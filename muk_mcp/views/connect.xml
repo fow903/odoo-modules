@@ -44,17 +44,26 @@
 							<field name="cursor_json" widget="text" readonly="1" nolabel="1"/>
 						</page>
 						<page string="Claude Web" name="claude_web">
-							<p class="text-muted" invisible="bearer_key">
-								Generate a Bearer Key first, then copy the URL below into Claude Web's
-								MCP server settings.
+							<p class="text-muted mb-2">
+								Claude Web (claude.ai) connects via OAuth — you do
+								<strong>not</strong> need a Bearer Key here. Each person
+								signs in with their own Odoo account, so a single connector
+								added once for your whole organization gives every member
+								their own identity and permissions.
 							</p>
-							<div invisible="not bearer_key">
-								<p class="text-muted mb-2">
-									Paste this URL in Claude Web under
-									<strong>Settings → Integrations → Add MCP server</strong>.
-								</p>
-								<field name="claude_web_url" widget="CopyClipboardChar" readonly="1" nolabel="1"/>
-							</div>
+							<p class="text-muted mb-2">
+								In Claude, go to
+								<strong>Settings → Connectors → Add custom connector</strong>
+								and paste this URL as the <em>Remote MCP server URL</em>
+								(leave Advanced settings empty — Claude registers itself
+								automatically):
+							</p>
+							<field name="mcp_url" widget="CopyClipboardChar" readonly="1" nolabel="1"/>
+							<p class="text-muted small mt-2">
+								Claude will open an Odoo login window the first time you
+								connect. On Team/Enterprise plans only an Owner can add the
+								connector; members then connect individually.
+							</p>
 						</page>
 					</notebook>
 				</sheet>

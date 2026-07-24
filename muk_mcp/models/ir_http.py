@@ -46,10 +46,21 @@ class IrHttp(models.AbstractModel):
     @classmethod
     def _handle_error(cls, exception):
         if (
-            getattr(request, 'dispatcher', None) and 
+            getattr(request, 'dispatcher', None) and
             request.dispatcher.routing_type == 'mcp'
         ):
             if isinstance(exception, werkzeug.exceptions.HTTPException):
+                headers = {}
+                if exception.code == 401:
+                    # RFC 9728 §5.1: point clients at the protected resource
+                    # metadata so they can discover the authorization server.
+                    base = request.env['ir.config_parameter'].sudo().get_param(
+                        'web.base.url', ''
+                    ).rstrip('/')
+                    headers['WWW-Authenticate'] = (
+                        'Bearer resource_metadata='
+                        f'"{base}/.well-known/oauth-protected-resource"'
+                    )
                 return request.make_json_response({
                     'jsonrpc': '2.0',
                     'id': None,
@@ -57,5 +68,5 @@ class IrHttp(models.AbstractModel):
                         'code': -32603,
                         'message': str(exception),
                     },
-                }, status=exception.code)
+                }, status=exception.code, headers=headers)
         return super()._handle_error(exception)

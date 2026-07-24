@@ -52,6 +52,11 @@ class MCPOAuthCode(models.Model):
         default='S256',
     )
 
+    resource = fields.Char(
+        string="Resource",
+        help="RFC 8707 resource indicator the token is requested for.",
+    )
+
     expires_at = fields.Datetime(
         string="Expires At",
         required=True,
@@ -68,7 +73,8 @@ class MCPOAuthCode(models.Model):
 
     @api.model
     def create_code(self, client_id, redirect_uri, user_id, scope='write',
-                    code_challenge=None, code_challenge_method='S256'):
+                    code_challenge=None, code_challenge_method='S256',
+                    resource=None):
         raw_code = secrets.token_urlsafe(32)
         self.sudo().create({
             'code_hash': hashlib.sha256(raw_code.encode()).hexdigest(),
@@ -78,6 +84,7 @@ class MCPOAuthCode(models.Model):
             'scope': scope,
             'code_challenge': code_challenge,
             'code_challenge_method': code_challenge_method or 'S256',
+            'resource': resource,
             'expires_at': fields.Datetime.now() + timedelta(minutes=10),
         })
         return raw_code

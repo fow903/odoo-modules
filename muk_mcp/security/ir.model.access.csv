@@ -16,3 +16,4 @@ access_muk_mcp_connect,access_muk_mcp_connect,model_muk_mcp_connect,base.group_u
 access_muk_mcp_oauth_code_admin,access_muk_mcp_oauth_code_admin,model_muk_mcp_oauth_code,base.group_system,1,1,1,1
 access_muk_mcp_oauth_code_user,access_muk_mcp_oauth_code_user,model_muk_mcp_oauth_code,base.group_user,1,0,1,0
 access_muk_mcp_oauth_show,access_muk_mcp_oauth_show,model_muk_mcp_oauth_show,base.group_user,1,0,1,0
+access_muk_mcp_oauth_client_admin,access_muk_mcp_oauth_client_admin,model_muk_mcp_oauth_client,base.group_system,1,1,1,1
