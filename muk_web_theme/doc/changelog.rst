@@ -1,3 +1,9 @@
+`1.3.3`
+-------
+
+- Darken the apps menu background image in dark mode and add a text shadow
+  to the app names to improve the contrast
+
 `1.3.2`
 -------
 
