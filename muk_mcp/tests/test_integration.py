@@ -12,7 +12,7 @@ from odoo.addons.muk_mcp.tools.exception import MCPScopeDenied
 
 
 @tagged('post_install', '-at_install')
-class TestMcpIntegration(common.TransactionCase):
+class TestMcpIntegration(common.SavepointCase):
 
     # ----------------------------------------------------------
     # Setup
@@ -85,7 +85,7 @@ class TestMcpIntegration(common.TransactionCase):
             'last_activity': old_time,
         })
         session._touch()
-        session.invalidate_recordset()
+        session.invalidate_cache(ids=session.ids)
         self.assertGreater(session.last_activity, old_time)
 
     # ----------------------------------------------------------

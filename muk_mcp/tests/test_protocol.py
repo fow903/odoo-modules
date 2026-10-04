@@ -5,7 +5,7 @@ from odoo.tests import common
 from odoo.addons.muk_mcp.tools import protocol, common as mcp_common
 
 
-class TestProtocol(common.TransactionCase):
+class TestProtocol(common.SavepointCase):
 
     # ----------------------------------------------------------
     # Tests

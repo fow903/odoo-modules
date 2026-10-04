@@ -4,6 +4,8 @@ import re
 import urllib.parse
 
 from odoo.tests import HttpCase, tagged
+from odoo.tests.common import HOST
+from odoo.tools import config
 
 
 @tagged('post_install', '-at_install')
@@ -14,6 +16,25 @@ class TestMcpOAuth(HttpCase):
     # ----------------------------------------------------------
 
     CLAUDE_REDIRECT = 'https://claude.ai/api/mcp/auth_callback'
+
+    def _full_url(self, url):
+        if url.startswith('/'):
+            return 'http://%s:%s%s' % (HOST, config['http_port'], url)
+        return url
+
+    def _open_no_redirect(self, url, data=None, headers=None):
+        # Odoo 13's HttpCase.url_open() has no `allow_redirects` kwarg
+        # (added in a later version), so hit self.opener directly for
+        # the cases that must not auto-follow a redirect.
+        full_url = self._full_url(url)
+        if data is not None:
+            return self.opener.post(
+                full_url, data=data, headers=headers,
+                timeout=10, allow_redirects=False,
+            )
+        return self.opener.get(
+            full_url, headers=headers, timeout=10, allow_redirects=False,
+        )
 
     def _register_public_client(self):
         return self.env['muk_mcp.oauth_client'].register({
@@ -202,7 +223,7 @@ class TestMcpOAuth(HttpCase):
         match = re.search(r'name="csrf_token"\s+value="([^"]+)"', form)
         self.assertTrue(match, 'CSRF token not found in consent form')
 
-        response = self.url_open('/mcp/oauth/authorize', data={
+        response = self._open_no_redirect('/mcp/oauth/authorize', data={
             'client_id': client_id,
             'redirect_uri': self.CLAUDE_REDIRECT,
             'state': 'xyz',
@@ -211,7 +232,7 @@ class TestMcpOAuth(HttpCase):
             'code_challenge_method': 'S256',
             'action': 'allow',
             'csrf_token': match.group(1),
-        }, allow_redirects=False)
+        })
 
         self.assertIn(response.status_code, (302, 303))
         location = response.headers.get('Location', '')
@@ -229,10 +250,9 @@ class TestMcpOAuth(HttpCase):
             'redirect_uri': 'https://evil.example.com/steal',
             'state': 'xyz',
         }
-        response = self.url_open(
+        response = self._open_no_redirect(
             '/mcp/oauth/authorize?' + '&'.join(
                 f'{k}={v}' for k, v in params.items()
             ),
-            allow_redirects=False,
         )
         self.assertEqual(response.status_code, 400)

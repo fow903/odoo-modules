@@ -1,0 +1,5 @@
+[mcp_servers.local-odoo]
+url = "http://localhost:8079/mcp"
+
+[mcp_servers.local-odoo.http_headers]
+Authorization = "Bearer KuV0Aw-mOOmkU953bPyoxZ3BUu4KcQq-VQsEgPNaaOk"

@@ -11,6 +11,7 @@ from odoo.http import request
 
 from odoo.addons.muk_mcp.core.tool import get_tool_index
 
+from odoo.addons.muk_mcp.tools.common import exception_message
 from odoo.addons.muk_mcp.tools.encoder import encode_request, encode_response, RecordEncoder
 from odoo.addons.muk_mcp.tools.exception import MCPScopeDenied
 from odoo.addons.muk_mcp.tools.logger import LoggerProxy
@@ -119,7 +120,7 @@ class MCPTool(models.Model):
                 if isinstance(exc, MCPScopeDenied)
                 else 'error'
             )
-            error = str(exc)
+            error = exception_message(exc)
             raise
         finally:
             if config.get('mcp_logging', True):

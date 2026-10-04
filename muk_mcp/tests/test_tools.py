@@ -4,7 +4,7 @@ from odoo.exceptions import UserError
 from odoo.tests import common
 
 
-class TestMcpTool(common.TransactionCase):
+class TestMcpTool(common.SavepointCase):
 
     # ----------------------------------------------------------
     # Setup

@@ -46,7 +46,7 @@ TEST_REGISTRY = {
 }
 
 
-class TestMcpDecoratorTool(common.TransactionCase):
+class TestMcpDecoratorTool(common.SavepointCase):
 
     # ----------------------------------------------------------
     # Setup
@@ -55,15 +55,29 @@ class TestMcpDecoratorTool(common.TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls._mcp_cleanups = []
         cls.tool_model = cls.env['muk_mcp.tool']
         cls.partner_cls = type(cls.env['res.partner'])
-        cls.startClassPatcher(patch.object(
+        # Odoo 13's SavepointCase has no startClassPatcher/startPatcher
+        # helpers (added in later versions) — start/stop the patchers
+        # manually and run the cleanups in tearDownClass (addClassCleanup needs Python 3.8).
+        patcher_echo = patch.object(
             cls.partner_cls, '_mcp_test_echo', _echo_tool, create=True,
-        ))
-        cls.startClassPatcher(patch.object(
+        )
+        patcher_echo.start()
+        cls._mcp_cleanups.append((patcher_echo.stop, ()))
+        patcher_write = patch.object(
             cls.partner_cls, '_mcp_test_write', _write_tool, create=True,
-        ))
-        cls.addClassCleanup(core_tool.invalidate_registry_cache, cls.env)
+        )
+        patcher_write.start()
+        cls._mcp_cleanups.append((patcher_write.stop, ()))
+        cls._mcp_cleanups.append((core_tool.invalidate_registry_cache, (cls.env,)))
+
+    @classmethod
+    def tearDownClass(cls):
+        for func, args in reversed(cls._mcp_cleanups):
+            func(*args)
+        super().tearDownClass()
 
     def setUp(self):
         super().setUp()
@@ -194,9 +208,11 @@ class TestMcpDecoratorTool(common.TransactionCase):
             return {'pong': value}
 
         mixin_cls = type(self.env['muk_mcp.mixin'])
-        self.startPatcher(patch.object(
+        patcher = patch.object(
             mixin_cls, '_mcp_scanner_probe', _mcp_scanner_probe, create=True,
-        ))
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
         core_tool.invalidate_registry_cache(self.env)
         self.addCleanup(core_tool.invalidate_registry_cache, self.env)
         index = core_tool.get_tool_index(self.env)
@@ -218,10 +234,12 @@ class TestMcpDecoratorTool(common.TransactionCase):
         def _return_recordset(self):
             return self.env['res.partner'].browse(partner.id)
 
-        self.startPatcher(patch.object(
+        patcher = patch.object(
             self.partner_cls, '_mcp_test_record',
             _return_recordset, create=True,
-        ))
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
         self.env.registry._muk_mcp_method_cache['mcp_test_record'] = {
             'kind': 'method',
             'model': 'res.partner',

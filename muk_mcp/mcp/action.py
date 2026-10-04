@@ -3,7 +3,7 @@ from odoo.exceptions import AccessError, UserError
 from odoo.models import check_method_name
 
 from odoo.addons.muk_mcp.core.tool import mcp_tool
-from odoo.addons.muk_mcp.tools.common import coerce_json_value
+from odoo.addons.muk_mcp.tools.common import coerce_json_value, exception_message
 
 
 def get_public_method(model, name):
@@ -95,7 +95,7 @@ class MCPMixin(models.AbstractModel):
         try:
             unbound = get_public_method(target, method)
         except (AccessError, AttributeError) as exc:
-            raise UserError(str(exc))
+            raise UserError(exception_message(exc))
         target_ids = self._normalize_ids(ids)
         if getattr(unbound, '_api', None) == 'model':
             recordset = target

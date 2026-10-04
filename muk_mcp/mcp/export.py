@@ -123,7 +123,7 @@ class MCPMixin(models.AbstractModel):
             content = content.encode('utf-8-sig')
         return {
             'filename': exporter.filename(model.replace('.', '_')),
-            'mimetype': exporter.content_type.split(';')[0],
+            'mimetype': exporter.content_type,
             'row_count': len(rows),
             'content_base64': base64.b64encode(content).decode(),
         }

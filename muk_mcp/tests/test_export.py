@@ -13,7 +13,7 @@ except ImportError:
     xlsxwriter = None
 
 
-class TestMcpExportRecords(common.TransactionCase):
+class TestMcpExportRecords(common.SavepointCase):
 
     # ----------------------------------------------------------
     # Setup

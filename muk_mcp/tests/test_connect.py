@@ -3,7 +3,7 @@ import json
 from odoo.tests import common
 
 
-class TestConnect(common.TransactionCase):
+class TestConnect(common.SavepointCase):
 
     # ----------------------------------------------------------
     # Setup

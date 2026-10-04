@@ -6,7 +6,7 @@ from odoo.tests import common, tagged
 from odoo.addons.muk_mcp.tools.rate_limit import RateLimiter
 
 @tagged('post_install', '-at_install')
-class RateLimiterTestCase(common.TransactionCase):
+class RateLimiterTestCase(common.SavepointCase):
 
     # ----------------------------------------------------------
     # Setup

@@ -1,6 +1,7 @@
 import secrets
 
 from odoo import api, fields, models, _
+from odoo.exceptions import AccessError
 
 
 class MCPKeyWizard(models.TransientModel):
@@ -52,6 +53,10 @@ class MCPKeyWizard(models.TransientModel):
 
     def action_make_key(self):
         self.ensure_one()
+        # Transient models are open to every user in Odoo 13, so the
+        # admin-only restriction has to be enforced here.
+        if not self.env.user.has_group('base.group_system'):
+            raise AccessError(_("Only administrators can generate MCP keys."))
         raw_key = secrets.token_urlsafe(32)
         key_model = self.env['muk_mcp.key']
         key_model.sudo().create({

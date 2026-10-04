@@ -3,7 +3,7 @@ import secrets
 from odoo.tests import common
 
 
-class TestMcpKey(common.TransactionCase):
+class TestMcpKey(common.SavepointCase):
 
     # ----------------------------------------------------------
     # Setup
@@ -37,7 +37,7 @@ class TestMcpKey(common.TransactionCase):
     def test_authenticate_updates_last_used(self):
         self.assertFalse(self.key.last_used)
         self.key_model.authenticate(self.raw_token)
-        self.key.invalidate_recordset()
+        self.key.invalidate_cache(ids=self.key.ids)
         self.assertTrue(self.key.last_used)
 
     def test_scope_default_is_write(self):

@@ -19,7 +19,7 @@ def _mcp_test_log_probe(self):
     return {'ok': True}
 
 
-class TestMcpLog(common.TransactionCase):
+class TestMcpLog(common.SavepointCase):
 
     # ----------------------------------------------------------
     # Setup
@@ -28,15 +28,27 @@ class TestMcpLog(common.TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls._mcp_cleanups = []
         cls.log_model = cls.env['muk_mcp.log']
         cls.tool_model = cls.env['muk_mcp.tool']
         cls.mixin_cls = type(cls.env['muk_mcp.mixin'])
-        cls.startClassPatcher(patch.object(
+        # Odoo 13's SavepointCase has no startClassPatcher helper (added
+        # in later versions) — start/stop the patcher manually and run
+        # the cleanups in tearDownClass (addClassCleanup needs Python 3.8).
+        patcher = patch.object(
             cls.mixin_cls, '_mcp_test_log_probe',
             _mcp_test_log_probe, create=True,
-        ))
+        )
+        patcher.start()
+        cls._mcp_cleanups.append((patcher.stop, ()))
         invalidate_registry_cache(cls.env)
-        cls.addClassCleanup(invalidate_registry_cache, cls.env)
+        cls._mcp_cleanups.append((invalidate_registry_cache, (cls.env,)))
+
+    @classmethod
+    def tearDownClass(cls):
+        for func, args in reversed(cls._mcp_cleanups):
+            func(*args)
+        super().tearDownClass()
 
     # ----------------------------------------------------------
     # Tests
@@ -116,7 +128,7 @@ class TestMcpLog(common.TransactionCase):
         })
         self.assertEqual(record.model_name, 'res.partner')
         self.assertEqual(record.res_id, 42)
-        self.assertEqual(record.res_ids, [42])
+        self.assertEqual(record._get_res_ids(), [42])
 
     def test_log_method_with_new_fields(self):
         self.log_model.log(

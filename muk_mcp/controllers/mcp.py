@@ -167,7 +167,7 @@ class MCPController(http.Controller):
                 self._log_request(
                     method,
                     status='error',
-                    error_message=str(exc),
+                    error_message=common.exception_message(exc),
                     duration_ms=int((time.time() - start) * 1000),
                 )
             return protocol.make_jsonrpc_error(
@@ -250,12 +250,12 @@ class MCPController(http.Controller):
                 )
         except MCPScopeDenied as exc:
             return protocol.make_tool_result(
-                [protocol.make_text_content(str(exc))],
+                [protocol.make_text_content(common.exception_message(exc))],
                 is_error=True,
             )
         except (AccessError, UserError) as exc:
             return protocol.make_tool_result(
-                [protocol.make_text_content(str(exc))],
+                [protocol.make_text_content(common.exception_message(exc))],
                 is_error=True,
             )
         except Exception:

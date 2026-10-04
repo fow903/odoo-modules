@@ -1,13 +1,10 @@
-import inspect
 import json
 
 from unittest.mock import patch
 
 from odoo import api
-from odoo.service.model import retrying
 from odoo.tests import common
 
-from odoo.addons.muk_mcp.controllers import mcp as mcp_controller
 from odoo.addons.muk_mcp.core.tool import invalidate_registry_cache, mcp_tool
 
 
@@ -22,7 +19,7 @@ def _mcp_test_ctx_probe(self):
     return {'flag': self.env.context.get('muk_mcp_probe')}
 
 
-class TestMcpDispatch(common.TransactionCase):
+class TestMcpDispatch(common.SavepointCase):
 
     # ----------------------------------------------------------
     # Setup
@@ -31,28 +28,35 @@ class TestMcpDispatch(common.TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls._mcp_cleanups = []
         cls.tool_model = cls.env['muk_mcp.tool']
         cls.mixin_cls = type(cls.env['muk_mcp.mixin'])
-        cls.startClassPatcher(patch.object(
+        # Odoo 13's SavepointCase has no startClassPatcher helper (added
+        # in later versions) — start/stop the patcher manually and run
+        # the cleanups in tearDownClass (addClassCleanup needs Python 3.8).
+        patcher = patch.object(
             cls.mixin_cls, '_mcp_test_ctx_probe',
             _mcp_test_ctx_probe, create=True,
-        ))
-        invalidate_registry_cache(cls.env)
-        cls.addClassCleanup(invalidate_registry_cache, cls.env)
-
-    # ----------------------------------------------------------
-    # Tests: retry wiring
-    # ----------------------------------------------------------
-
-    def test_controller_imports_retrying(self):
-        self.assertIs(mcp_controller.retrying, retrying)
-
-    def test_controller_wraps_tools_call_in_retrying(self):
-        source = inspect.getsource(
-            mcp_controller.MCPController._handle_tools_call
         )
-        self.assertIn('retrying(', source)
-        self.assertIn('partial(', source)
+        patcher.start()
+        cls._mcp_cleanups.append((patcher.stop, ()))
+        invalidate_registry_cache(cls.env)
+        cls._mcp_cleanups.append((invalidate_registry_cache, (cls.env,)))
+
+    @classmethod
+    def tearDownClass(cls):
+        for func, args in reversed(cls._mcp_cleanups):
+            func(*args)
+        super().tearDownClass()
+
+    # NOTE: the retry-wiring tests that used to live here
+    # (test_controller_imports_retrying,
+    # test_controller_wraps_tools_call_in_retrying) exercised
+    # `odoo.service.model.retrying`, which does not exist in Odoo 13
+    # (added in a later version). The backported controller no longer
+    # uses it either: `MCPController._handle_tools_call` now runs the
+    # tool call inside `with request.env.cr.savepoint():`. Both tests
+    # were removed as there is nothing left to assert.
 
     # ----------------------------------------------------------
     # Tests: context override

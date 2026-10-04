@@ -161,6 +161,11 @@ class MCPLog(models.Model):
     def log(self, **values):
         if isinstance(values.get('res_ids'), (list, tuple)):
             values['res_ids'] = json.dumps(list(values['res_ids']))
+        # Odoo 13 shares the ORM cache and pending writes between cursors
+        # of the same thread, and committing the log cursor clears them.
+        # Flush first so the caller's pending writes are not lost.
+        with contextlib.suppress(Exception), mute_logger('odoo.sql_db'):
+            self.env['base'].flush()
         with contextlib.suppress(Exception), mute_logger('odoo.sql_db'), Registry(
                 self.env.cr.dbname
             ).cursor() as cr:

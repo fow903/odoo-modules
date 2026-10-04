@@ -21,3 +21,12 @@ def coerce_json_value(value):
         except (TypeError, ValueError):
             return value
     return value
+
+
+def exception_message(exc):
+    # Odoo 13 exceptions keep the message in ``name``; str() on them
+    # returns the repr of the ``(name, value)`` args tuple.
+    message = getattr(exc, 'name', None)
+    if isinstance(message, str) and message:
+        return message
+    return str(exc)
