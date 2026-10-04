@@ -1,9 +1,20 @@
-from odoo import api, models
+from odoo import _, api, models
 from odoo.exceptions import AccessError, UserError
-from odoo.service.model import get_public_method
+from odoo.models import check_method_name
 
 from odoo.addons.muk_mcp.core.tool import mcp_tool
 from odoo.addons.muk_mcp.tools.common import coerce_json_value
+
+
+def get_public_method(model, name):
+    check_method_name(name)
+    func = getattr(type(model), name, None)
+    if not callable(func):
+        raise AttributeError(
+            _("The method '%s' does not exist on the model '%s'")
+            % (name, model._name)
+        )
+    return func
 
 
 class MCPMixin(models.AbstractModel):
@@ -86,7 +97,7 @@ class MCPMixin(models.AbstractModel):
         except (AccessError, AttributeError) as exc:
             raise UserError(str(exc))
         target_ids = self._normalize_ids(ids)
-        if getattr(unbound, '_api_model', False):
+        if getattr(unbound, '_api', None) == 'model':
             recordset = target
         else:
             recordset = (

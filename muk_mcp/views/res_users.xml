@@ -3,80 +3,79 @@
 <odoo>
 
 	<record id="view_users_form_simple" model="ir.ui.view">
-		<field name="name">res.users.form.simple</field>
+		<field name="name">res.users.form.mcp</field>
 		<field name="model">res.users</field>
 		<field name="inherit_id" ref="base.view_users_form"/>
 		<field name="arch" type="xml">
-			<xpath expr="//page[@name='account_security']" position="inside">
-				<group string="MCP Keys">
-					<div class="text-muted" colspan="2">
-						Connect AI assistants.
-					</div>
-					<div colspan="2" invisible="not mcp_key_ids">
-						<field name="mcp_key_ids" nolabel="1" colspan="4" readonly="0" mode="kanban"/>
-					</div>
-					<div colspan="2">
-						<button name="action_generate_mcp_key" string="Add MCP Key" type="object" class="btn btn-secondary" groups="base.group_system"/>
-					</div>
-				</group>
-				<group string="MCP Sessions">
-					<div class="text-muted" colspan="2">
-						Active AI connections.
-					</div>
-					<div colspan="2" invisible="not mcp_session_ids">
-						<field name="mcp_session_ids" nolabel="1" colspan="4" readonly="0" mode="kanban"/>
-					</div>
-					<div colspan="2">
-						<button name="action_revoke_mcp_sessions" string="Revoke all sessions" type="object" class="btn btn-secondary"/>
-					</div>
-				</group>
-				<group string="Claude Code Web (OAuth)">
-					<div class="text-muted" colspan="2">
-						Use these credentials in Claude Code Web — just enter the server URL and these credentials.
-					</div>
-					<div colspan="2" invisible="not mcp_oauth_client_id" class="mt-2">
-						<div class="row g-2 mb-3">
-							<div class="col-auto fw-bold text-muted" style="min-width:140px">Client ID</div>
-							<div class="col">
-								<field name="mcp_oauth_client_id" widget="CopyClipboardChar" readonly="1" nolabel="1"/>
+			<xpath expr="//page[@name='access_rights']" position="after">
+				<page string="MCP" name="mcp">
+					<group string="MCP Keys">
+						<div class="text-muted" colspan="2">
+							Connect AI assistants.
+						</div>
+						<div colspan="2" attrs="{'invisible': [('mcp_key_ids', '=', [])]}">
+							<field name="mcp_key_ids" nolabel="1" readonly="1" mode="kanban"/>
+						</div>
+						<div colspan="2">
+							<button name="action_generate_mcp_key" string="Add MCP Key" type="object" class="btn btn-secondary" groups="base.group_system"/>
+						</div>
+					</group>
+					<group string="MCP Sessions">
+						<div class="text-muted" colspan="2">
+							Active AI connections.
+						</div>
+						<div colspan="2" attrs="{'invisible': [('mcp_session_ids', '=', [])]}">
+							<field name="mcp_session_ids" nolabel="1" readonly="1" mode="kanban"/>
+						</div>
+						<div colspan="2">
+							<button name="action_revoke_mcp_sessions" string="Revoke all sessions" type="object" class="btn btn-secondary"/>
+						</div>
+					</group>
+					<group string="Claude Code Web (OAuth)">
+						<div class="text-muted" colspan="2">
+							Use these credentials in Claude Code Web — just enter the server URL and these credentials.
+						</div>
+						<div colspan="2" class="mt-2" attrs="{'invisible': [('mcp_oauth_client_id', '=', False)]}">
+							<div class="row mb-3">
+								<div class="col-auto font-weight-bold text-muted" style="min-width:140px">Client ID</div>
+								<div class="col">
+									<field name="mcp_oauth_client_id" widget="CopyClipboardChar" readonly="1" nolabel="1"/>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-auto font-weight-bold text-muted" style="min-width:140px">Client Secret</div>
+								<div class="col" attrs="{'invisible': [('mcp_oauth_client_secret_prefix', '=', False)]}">
+									<field name="mcp_oauth_client_secret_prefix" readonly="1" nolabel="1" class="text-monospace"/>
+									<span class="ml-2 text-muted">... (hidden — regenerate to see again)</span>
+								</div>
 							</div>
 						</div>
-						<div class="row g-2">
-							<div class="col-auto fw-bold text-muted" style="min-width:140px">Client Secret</div>
-							<div class="col" invisible="not mcp_oauth_client_secret_prefix">
-								<field name="mcp_oauth_client_secret_prefix" readonly="1" nolabel="1" class="font-monospace"/>
-								<span class="ms-2 text-muted">... (hidden — regenerate to see again)</span>
-							</div>
+						<div colspan="2" class="mt-2">
+							<button
+								name="action_generate_oauth_credentials"
+								type="object"
+								string="Generate OAuth Credentials"
+								class="btn btn-secondary"
+								attrs="{'invisible': [('mcp_oauth_client_id', '!=', False)]}"
+							/>
+							<button
+								name="action_generate_oauth_credentials"
+								type="object"
+								string="Regenerate OAuth Credentials"
+								class="btn btn-secondary"
+								attrs="{'invisible': [('mcp_oauth_client_id', '=', False)]}"
+							/>
+							<button
+								name="action_revoke_oauth_credentials"
+								type="object"
+								string="Revoke"
+								class="btn btn-outline-danger ml-2"
+								attrs="{'invisible': [('mcp_oauth_client_id', '=', False)]}"
+								confirm="This will invalidate the current OAuth credentials. Any Claude Code Web connection using them will stop working."
+							/>
 						</div>
-					</div>
-					<div colspan="2" class="mt-2 d-flex gap-2">
-						<button
-							name="action_generate_oauth_credentials"
-							type="object"
-							class="btn btn-secondary"
-							invisible="mcp_oauth_client_id"
-						>
-							Generate OAuth Credentials
-						</button>
-						<button
-							name="action_generate_oauth_credentials"
-							type="object"
-							class="btn btn-secondary"
-							invisible="not mcp_oauth_client_id"
-						>
-							Regenerate OAuth Credentials
-						</button>
-						<button
-							name="action_revoke_oauth_credentials"
-							type="object"
-							class="btn btn-outline-danger"
-							invisible="not mcp_oauth_client_id"
-							confirm="This will invalidate the current OAuth credentials. Any Claude Code Web connection using them will stop working."
-						>
-							Revoke
-						</button>
-					</div>
-				</group>
+					</group>
+				</page>
 			</xpath>
 		</field>
 	</record>

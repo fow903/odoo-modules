@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates xml:space="preserve">
+
+    <t t-extend="mail.widget.Thread.Message">
+        <t t-jquery="p.o_mail_info small.o_mail_timestamp" t-operation="before">
+            <span
+                t-if="message.getMcpName and message.getMcpName()"
+                class="badge badge-info mr-1"
+                style="font-size: 0.6rem;"
+                t-att-title="'MCP: ' + message.getMcpName()"
+            >MCP</span>
+        </t>
+    </t>
+
+</templates>

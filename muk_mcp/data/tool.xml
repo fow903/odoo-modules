@@ -82,7 +82,7 @@ else:
             msg = record.message_post(
                 body=body,
                 message_type=msg_type,
-                subtype_xmlid=subtype,
+                subtype=subtype,
             )
             result = {'id': msg.id, 'date': str(msg.date)}
         </field>

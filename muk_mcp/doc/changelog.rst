@@ -1,3 +1,8 @@
+`13.0.1.5.1`
+-----------
+
+- Backport to Odoo 13 (Playground not available, cleanup via cron jobs)
+
 `1.4.0`
 -------
 

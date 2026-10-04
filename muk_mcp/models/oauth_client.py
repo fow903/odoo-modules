@@ -12,7 +12,7 @@ class MCPOAuthClient(models.Model):
 
     _name = 'muk_mcp.oauth_client'
     _description = "MCP OAuth Client (Dynamic Registration)"
-    _order = 'create_date desc'
+    _order = 'create_date desc, id desc'
 
     # ----------------------------------------------------------
     # Fields

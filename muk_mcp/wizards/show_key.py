@@ -1,18 +1,16 @@
 from odoo import fields, models
 
 
-class MCPKeyShow(models.AbstractModel):
+class MCPKeyShow(models.TransientModel):
 
     _name = 'muk_mcp.key.show'
     _description = "Show MCP Key"
+    _order = 'id desc'
+    _transient_max_hours = 0.1
 
     # ----------------------------------------------------------
     # Fields
     # ----------------------------------------------------------
-
-    id = fields.Id(
-        string="ID",
-    )
 
     key = fields.Char(
         string="API Key",

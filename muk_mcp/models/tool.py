@@ -6,7 +6,6 @@ import time
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools.safe_eval import safe_eval, test_python_expr
-from odoo.tools.safe_eval import json as safe_json
 from odoo.tools import config
 from odoo.http import request
 
@@ -138,10 +137,12 @@ class MCPTool(models.Model):
 
     @api.model
     def _execute(self, name, arguments, env, enforce_scope):
-        if not (entry := get_tool_index(env).get(name)):
-            raise UserError(_("Tool not found: %s", name))
+        entry = get_tool_index(env).get(name)
+        if not entry:
+            raise UserError(_("Tool not found: %s") % name)
         self._check_scope(entry['category'], enforce_scope)
-        if isinstance(context_override := arguments.pop('context', None), dict):
+        context_override = arguments.pop('context', None)
+        if isinstance(context_override, dict):
             env = env(context={**env.context, **context_override})
         if entry['kind'] == 'db':
             text = self.sudo().browse(entry['id'])._run(arguments, env)
@@ -154,9 +155,8 @@ class MCPTool(models.Model):
                 raw_result = func(env[entry['model']], **arguments)
             except TypeError as exc:
                 raise UserError(_(
-                    "Invalid arguments for tool %(name)s: %(error)s",
-                    name=name, error=exc,
-                ))
+                    "Invalid arguments for tool %(name)s: %(error)s"
+                ) % {'name': name, 'error': exc})
             text = self._serialize_result(raw_result)
         return (
             text,
@@ -195,7 +195,8 @@ class MCPTool(models.Model):
             values['error_message'] = error
             values['response_data'] = error
         with contextlib.suppress(Exception):
-            if key := getattr(request, '_mcp_key', None):
+            key = getattr(request, '_mcp_key', None)
+            if key:
                 values['key_id'] = key.id
             values['ip_address'] = (
                 request.httprequest.remote_addr
@@ -235,7 +236,7 @@ class MCPTool(models.Model):
         return {
             'env': env,
             'arguments': arguments,
-            'json': safe_json,
+            'json': json,
             'callable': callable,
             'getattr': getattr,
             'hasattr': hasattr,
@@ -303,9 +304,8 @@ class MCPTool(models.Model):
                 json.loads(record.input_schema)
             except (TypeError, ValueError) as exc:
                 raise ValidationError(_(
-                    "Tool %(name)s has invalid Input Schema JSON: %(error)s",
-                    name=record.name, error=exc,
-                ))
+                    "Tool %(name)s has invalid Input Schema JSON: %(error)s"
+                ) % {'name': record.name, 'error': exc})
 
     # ----------------------------------------------------------
     # ORM

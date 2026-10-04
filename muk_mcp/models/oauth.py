@@ -9,7 +9,7 @@ class MCPOAuthCode(models.Model):
 
     _name = 'muk_mcp.oauth_code'
     _description = "MCP OAuth Authorization Code"
-    _order = 'create_date desc'
+    _order = 'create_date desc, id desc'
 
     # ----------------------------------------------------------
     # Fields
@@ -106,6 +106,6 @@ class MCPOAuthCode(models.Model):
     # Cron
     # ----------------------------------------------------------
 
-    @api.autovacuum
+    @api.model
     def _autovacuum_codes(self):
         self.sudo().search([('expires_at', '<', fields.Datetime.now())]).unlink()

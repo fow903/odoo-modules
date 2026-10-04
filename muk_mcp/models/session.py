@@ -2,7 +2,6 @@ import contextlib
 import uuid
 
 from odoo import api, tools, fields, models
-from odoo.tools import SQL
 from odoo.tools.misc import mute_logger
 
 
@@ -10,7 +9,7 @@ class MCPSession(models.Model):
 
     _name = 'muk_mcp.session'
     _description = "MCP Session"
-    _order = 'create_date desc'
+    _order = 'create_date desc, id desc'
 
     # ----------------------------------------------------------
     # Fields
@@ -53,14 +52,14 @@ class MCPSession(models.Model):
     # ----------------------------------------------------------
 
     def _touch(self):
-        with (
-            contextlib.suppress(Exception),
-            mute_logger('odoo.sql_db'),
-            self.env.cr.savepoint(),
-        ):
-            self.env.cr.execute(SQL(
+        if not self.ids:
+            return self
+        with contextlib.suppress(Exception), \
+                mute_logger('odoo.sql_db'), \
+                self.env.cr.savepoint():
+            self.env.cr.execute(
                 """
-                UPDATE %s
+                UPDATE "{table}"
                    SET last_activity = NOW() AT TIME ZONE 'UTC',
                        write_date = NOW() AT TIME ZONE 'UTC',
                        write_uid = %s
@@ -69,12 +68,9 @@ class MCPSession(models.Model):
                        last_activity IS NULL
                        OR last_activity < (NOW() AT TIME ZONE 'UTC') - make_interval(secs => %s)
                    )
-                """,
-                SQL.identifier(self._table),
-                self.env.uid,
-                tuple(self.ids),
-                60,
-            ))
+                """.format(table=self._table),
+                (self.env.uid, tuple(self.ids), 60),
+            )
         return self
 
     # ----------------------------------------------------------
@@ -90,19 +86,17 @@ class MCPSession(models.Model):
 
     def init(self):
         super().init()
-        tools.create_index(
-            self.env.cr,
-            'muk_mcp_session_active_session_idx',
-            self._table,
-            ['session_id', 'user_id'],
-            where='active IS TRUE',
+        self.env.cr.execute(
+            'CREATE INDEX IF NOT EXISTS muk_mcp_session_active_session_idx '
+            'ON "{table}" (session_id, user_id) '
+            'WHERE active IS TRUE'.format(table=self._table)
         )
 
     # ----------------------------------------------------------
     # Cron
     # ----------------------------------------------------------
 
-    @api.autovacuum
+    @api.model
     def _autovacuum_sessions(self):
         hours = int(self.env['ir.config_parameter'].sudo().get_param(
             'muk_mcp.session_timeout_hours',

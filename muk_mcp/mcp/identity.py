@@ -87,7 +87,7 @@ class MCPMixin(models.AbstractModel):
         rights = {}
         for op in ('read', 'write', 'create', 'unlink'):
             try:
-                target.check_access(op)
+                target.check_access_rights(op)
                 rights[op] = True
             except Exception:
                 rights[op] = False

@@ -7,6 +7,7 @@ class Connect(models.TransientModel):
 
     _name = 'muk_mcp.connect'
     _description = "Connect AI Wizard"
+    _order = 'id desc'
 
     # ----------------------------------------------------------
     # Fields

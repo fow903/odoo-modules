@@ -286,28 +286,23 @@ class MCPMixin(models.AbstractModel):
                 aggregates.append('%s:sum' % field_spec)
             else:
                 aggregates.append('%s:count_distinct' % field_spec)
-        if '__count' not in aggregates:
-            aggregates.append('__count')
-        rows = target._read_group(
+        aggregates = [spec for spec in aggregates if spec != '__count']
+        rows = target.read_group(
             coerce_json_value(domain) or [],
-            groupby=groupby,
-            aggregates=aggregates,
+            aggregates,
+            list(groupby),
             limit=limit,
-            order=order or None,
+            orderby=order or False,
+            lazy=False,
         )
-        keys = list(groupby) + list(aggregates)
         data = []
         for row in rows:
             entry = {}
-            for key, value in zip(keys, row):
-                if hasattr(value, '_name') and hasattr(value, 'ids'):
-                    if len(value) == 1:
-                        entry[key] = (value.id, value.display_name)
-                    else:
-                        entry[key] = [(r.id, r.display_name) for r in value]
-                else:
-                    entry[key] = value
-            if '__count' in entry:
-                entry['%s_count' % groupby[0]] = entry.pop('__count')
+            for key in groupby:
+                entry[key] = row.get(key)
+            for spec in aggregates:
+                # read_group keys aggregates by field name (or alias).
+                entry[spec] = row.get(spec.split(':')[0])
+            entry['%s_count' % groupby[0]] = row.get('__count')
             data.append(entry)
         return data

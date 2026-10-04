@@ -151,31 +151,16 @@ curl -X POST https://your-odoo.com/mcp \
   }'
 ```
 
-## Playground
+## Odoo 13 notes
 
-The module ships with an in-backend **Playground** for testing tools
-without hooking up an external MCP client. Open
-**Settings > Technical > MCP > Playground** to access it.
+This branch is a backport to Odoo 13. Differences with the 18.0 version:
 
-The Playground:
-
-- Lists every registered tool (Python- and database-backed) grouped
-  by scope, with the same schemas the MCP `tools/list` method
-  returns.
-- Auto-renders a form for each tool's input schema so you can fill
-  arguments without hand-writing JSON.
-- Executes tools against the real `/mcp` endpoint using a
-  Bearer-authenticated session — either a key you paste in
-  (`Use existing`) or one generated in-place (`Generate new`).
-- Displays the response, HTTP status, and round-trip time, plus a
-  raw JSON-RPC view.
-- Provides **Copy curl** and **Copy JSON-RPC** helpers for
-  reproducing any call from the terminal or another client.
-
-Keys entered or generated in the Playground are stored only in the
-current tab's `sessionStorage`; nothing plaintext is persisted
-server-side after generation. Press `Ctrl`+`Enter` in the detail
-pane to run the current tool.
+- The in-backend **Playground** (OWL 2) is not available; use `curl`
+  or any MCP client to try tools.
+- Log, session, notification and OAuth code cleanup runs through
+  scheduled actions (`MCP: Clean up ...`) instead of `@api.autovacuum`.
+- MCP keys, sessions and OAuth credentials live in a dedicated **MCP**
+  tab on the user form.
 
 ## Usage
 

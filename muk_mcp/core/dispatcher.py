@@ -1,54 +1,65 @@
 import json
 
-from werkzeug.exceptions import HTTPException
-
 from odoo import http
 from odoo.http import Response
 
 
-class MCPDispatcher(http.Dispatcher):
+# Odoo 13 turns every ``application/json`` request into a ``JsonRequest``,
+# which wraps the payload in Odoo's own JSON-RPC envelope. MCP (and the
+# RFC 7591 client registration) need the raw body and full control over the
+# response, so these paths are served as plain ``HttpRequest`` instead.
+MCP_RAW_JSON_PATHS = frozenset({
+    '/mcp',
+    '/mcp/oauth/register',
+})
 
-    routing_type = 'mcp'
 
-    # ----------------------------------------------------------
-    # Functions
-    # ----------------------------------------------------------
+def is_mcp_request(req):
+    httprequest = getattr(req, 'httprequest', None)
+    return bool(httprequest) and httprequest.path == '/mcp'
 
-    @classmethod
-    def is_compatible_with(cls, request):
-        return True
 
-    def dispatch(self, endpoint, args):
-        self.request.params = {**args, **self.request.get_http_params()}
-        if self.request.httprequest.mimetype == 'application/json':
-            body = self.request.httprequest.get_data(as_text=True)
-            if body:
-                try:
-                    data = json.loads(body)
-                    if isinstance(data, dict):
-                        self.request.params['jsonrpc_data'] = data
-                    elif isinstance(data, list):
-                        self.request.params['jsonrpc_batch'] = data
-                except (json.JSONDecodeError, TypeError, ValueError):
-                    pass
-        result = (
-            self.request.registry['ir.http']._dispatch(endpoint)
-            if self.request.db
-            else endpoint(**self.request.params)
-        )
-        if isinstance(result, Response):
-            return result
-        return self.request.make_json_response(result)
+def make_json_response(data, status=200, headers=None):
+    response_headers = {'Content-Type': 'application/json; charset=utf-8'}
+    if headers:
+        response_headers.update(headers)
+    return Response(
+        json.dumps(data, ensure_ascii=False, default=str),
+        status=status,
+        headers=list(response_headers.items()),
+    )
 
-    def handle_error(self, exc):
-        if isinstance(exc, HTTPException):
-            return exc
-        error = {
-            'jsonrpc': '2.0',
-            'id': None,
-            'error': {
-                'code': -32603,
-                'message': str(exc),
-            },
-        }
-        return self.request.make_json_response(error, status=500)
+
+def parse_json_body(req):
+    """Return ``(data, batch)`` parsed from the raw request body."""
+    if req.httprequest.mimetype != 'application/json':
+        return None, None
+    body = req.httprequest.get_data(as_text=True)
+    if not body:
+        return None, None
+    try:
+        data = json.loads(body)
+    except (TypeError, ValueError):
+        return None, None
+    if isinstance(data, dict):
+        return data, None
+    if isinstance(data, list):
+        return None, data
+    return None, None
+
+
+def _patch_get_request():
+    origin = http.Root.get_request
+    if getattr(origin, '_muk_mcp_patched', False):
+        return
+
+    def get_request(self, httprequest):
+        if httprequest.path in MCP_RAW_JSON_PATHS:
+            return http.HttpRequest(httprequest)
+        return origin(self, httprequest)
+
+    get_request._muk_mcp_patched = True
+    http.Root.get_request = get_request
+
+
+_patch_get_request()

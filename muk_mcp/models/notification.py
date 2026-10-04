@@ -1,7 +1,7 @@
 import json
 import uuid
 
-from odoo import api, fields, models, tools
+from odoo import api, fields, models
 
 
 class MCPNotification(models.Model):
@@ -66,24 +66,22 @@ class MCPNotification(models.Model):
         self.sudo().create(vals_list)
 
     # ----------------------------------------------------------
-    # Cron
-    # ----------------------------------------------------------
-
-    # ----------------------------------------------------------
     # ORM
     # ----------------------------------------------------------
 
     def init(self):
         super().init()
-        tools.create_index(
-            self.env.cr,
-            'muk_mcp_notification_undelivered_idx',
-            self._table,
-            ['session_id', 'id'],
-            where='delivered IS NOT TRUE',
+        self.env.cr.execute(
+            'CREATE INDEX IF NOT EXISTS muk_mcp_notification_undelivered_idx '
+            'ON "{table}" (session_id, id) '
+            'WHERE delivered IS NOT TRUE'.format(table=self._table)
         )
 
-    @api.autovacuum
+    # ----------------------------------------------------------
+    # Cron
+    # ----------------------------------------------------------
+
+    @api.model
     def _autovacuum_notifications(self):
         delivered_limit = fields.Datetime.subtract(fields.Datetime.now(), days=1)
         stale_limit = fields.Datetime.subtract(fields.Datetime.now(), days=7)
@@ -92,6 +90,8 @@ class MCPNotification(models.Model):
             '&', ('delivered', '=', True), ('create_date', '<', delivered_limit),
             '&', ('delivered', '=', False), ('create_date', '<', stale_limit),
         ]
-        while batch := self.search(domain, limit=5000):
+        batch = self.search(domain, limit=5000)
+        while batch:
             batch.unlink()
             self.env.cr.commit()
+            batch = self.search(domain, limit=5000)

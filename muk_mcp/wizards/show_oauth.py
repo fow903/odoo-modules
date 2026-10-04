@@ -1,12 +1,16 @@
 from odoo import fields, models
 
 
-class MCPOAuthShow(models.AbstractModel):
+class MCPOAuthShow(models.TransientModel):
 
     _name = 'muk_mcp.oauth.show'
     _description = "Show MCP OAuth Credentials"
+    _order = 'id desc'
+    _transient_max_hours = 0.1
 
-    id = fields.Id(string="ID")
+    # ----------------------------------------------------------
+    # Fields
+    # ----------------------------------------------------------
 
     client_id = fields.Char(
         string="Client ID",

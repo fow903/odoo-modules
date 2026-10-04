@@ -1,6 +1,7 @@
 import contextlib
+import json
 
-from odoo import api, tools, fields, models, SUPERUSER_ID
+from odoo import _, api, tools, fields, models, SUPERUSER_ID
 from odoo.modules.registry import Registry
 from odoo.tools.misc import mute_logger
 
@@ -9,7 +10,7 @@ class MCPLog(models.Model):
 
     _name = 'muk_mcp.log'
     _description = "MCP Audit Log"
-    _order = 'create_date desc'
+    _order = 'create_date desc, id desc'
 
     # ----------------------------------------------------------
     # Fields
@@ -53,9 +54,10 @@ class MCPLog(models.Model):
         readonly=True,
     )
 
-    res_ids = fields.Json(
+    res_ids = fields.Text(
         string="Record IDs",
         readonly=True,
+        help="JSON-encoded list of record IDs.",
     )
 
     request_data = fields.Text(
@@ -96,6 +98,20 @@ class MCPLog(models.Model):
     )
 
     # ----------------------------------------------------------
+    # Helper
+    # ----------------------------------------------------------
+
+    def _get_res_ids(self):
+        self.ensure_one()
+        if not self.res_ids:
+            return []
+        try:
+            ids = json.loads(self.res_ids)
+        except (TypeError, ValueError):
+            return []
+        return ids if isinstance(ids, list) else []
+
+    # ----------------------------------------------------------
     # Actions
     # ----------------------------------------------------------
 
@@ -103,12 +119,17 @@ class MCPLog(models.Model):
         self.ensure_one()
         if not self.model_name or not self.res_id:
             return
-        if not self.env[self.model_name].sudo().search_count(
-            [('id', '=', self.res_id)], limit=1,
+        if (
+            self.model_name not in self.env or
+            not self.env[self.model_name].sudo().search_count(
+                [('id', '=', self.res_id)],
+            )
         ):
             return {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {
-                'title': 'Record not found',
-                'message': f'{self.model_name}({self.res_id}) no longer exists.',
+                'title': _('Record not found'),
+                'message': _('%s(%s) no longer exists.') % (
+                    self.model_name, self.res_id,
+                ),
                 'type': 'warning',
             }}
         return {
@@ -121,12 +142,13 @@ class MCPLog(models.Model):
 
     def action_open_records(self):
         self.ensure_one()
-        if self.model_name and self.res_ids:
+        res_ids = self._get_res_ids()
+        if self.model_name and res_ids:
             return {
                 'type': 'ir.actions.act_window',
                 'name': self.model_name,
                 'res_model': self.model_name,
-                'domain': [('id', 'in', self.res_ids)],
+                'domain': [('id', 'in', res_ids)],
                 'views': [(False, 'list'), (False, 'form')],
                 'target': 'current',
             }
@@ -137,6 +159,8 @@ class MCPLog(models.Model):
 
     @api.model
     def log(self, **values):
+        if isinstance(values.get('res_ids'), (list, tuple)):
+            values['res_ids'] = json.dumps(list(values['res_ids']))
         with contextlib.suppress(Exception), mute_logger('odoo.sql_db'), Registry(
                 self.env.cr.dbname
             ).cursor() as cr:
@@ -147,7 +171,7 @@ class MCPLog(models.Model):
     # Cron
     # ----------------------------------------------------------
 
-    @api.autovacuum
+    @api.model
     def _autovacuum_logs(self):
         days = int(self.env['ir.config_parameter'].sudo().get_param(
             'muk_mcp.log_autovacuum_days',
@@ -157,6 +181,8 @@ class MCPLog(models.Model):
             fields.Datetime.now(), days=days
         )
         domain = [('create_date', '<', limit)]
-        while batch := self.search(domain, limit=5000):
+        batch = self.search(domain, limit=5000)
+        while batch:
             batch.unlink()
             self.env.cr.commit()
+            batch = self.search(domain, limit=5000)

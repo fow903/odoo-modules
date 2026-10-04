@@ -20,7 +20,8 @@ class MCPMixin(models.AbstractModel):
             return self.env['ir.actions.report'].browse(
                 report_ref
             )
-        if '.' in (ref := (report_ref or '').strip()):
+        ref = (report_ref or '').strip()
+        if '.' in ref:
             report = self.env.ref(ref, raise_if_not_found=False)
             if report and report._name == 'ir.actions.report':
                 return report
@@ -73,11 +74,13 @@ class MCPMixin(models.AbstractModel):
         category='read',
     )
     def _mcp_print_report(self, report_ref, ids):
-        if not (target_ids := self._normalize_ids(ids)):
+        target_ids = self._normalize_ids(ids)
+        if not target_ids:
             raise UserError(_('No record IDs provided'))
-        if not (report := self._resolve_report(report_ref)):
-            raise UserError(_("Report %r not found.", report_ref))
-        content, report_type = report._render(report.report_name, target_ids)
+        report = self._resolve_report(report_ref)
+        if not report:
+            raise UserError(_("Report %r not found.") % report_ref)
+        content, report_type = report.render(target_ids)
         mimetype, extension = self._report_mimetype(report_type)
         name = report.name or report.report_name or 'report'
         if isinstance(content, str):

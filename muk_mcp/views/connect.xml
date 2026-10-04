@@ -18,14 +18,14 @@
 					</div>
 					<group>
 						<field name="mcp_url" readonly="1"/>
-						<field name="bearer_key" readonly="1" invisible="not bearer_key"/>
+						<field name="bearer_key" readonly="1" attrs="{'invisible': [('bearer_key', '=', False)]}"/>
 					</group>
 					<button
 						name="action_generate_key"
 						type="object"
 						string="Generate Bearer Key"
 						class="btn-primary mb-3"
-						invisible="bearer_key"
+						attrs="{'invisible': [('bearer_key', '!=', False)]}"
 					/>
 					<notebook>
 						<page string="Claude Code" name="claude_code">

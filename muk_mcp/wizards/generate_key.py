@@ -7,6 +7,7 @@ class MCPKeyWizard(models.TransientModel):
 
     _name = 'muk_mcp.generate_key'
     _description = "MCP Generate Key"
+    _order = 'id desc'
     _transient_max_hours = 0.1
 
     # ----------------------------------------------------------

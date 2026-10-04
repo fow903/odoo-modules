@@ -23,7 +23,7 @@ class MCPMixin(models.AbstractModel):
 
     def _resolve_model(self, model):
         if not model or model not in self.env:
-            raise UserError(_("Model %r not found", model))
+            raise UserError(_("Model %r not found") % model)
         return self.env[model]
 
     # ----------------------------------------------------------

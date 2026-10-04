@@ -4,6 +4,8 @@ import json
 import secrets
 import urllib.parse
 
+import werkzeug.utils
+
 from odoo import api, http, SUPERUSER_ID
 from odoo.http import request, Response
 
@@ -80,7 +82,9 @@ class MCPOAuthController(http.Controller):
         headers = {'Content-Type': 'application/json', 'Cache-Control': 'no-store'}
         if extra_headers:
             headers.update(extra_headers)
-        return Response(json.dumps(data), status=status, headers=headers)
+        return Response(
+            json.dumps(data), status=status, headers=list(headers.items()),
+        )
 
     def _token_error(self, error, description=None, status=400):
         body = {'error': error}
@@ -105,7 +109,7 @@ class MCPOAuthController(http.Controller):
             '/.well-known/oauth-authorization-server/mcp',
         ],
         type='http', auth='public', methods=['GET'],
-        csrf=False, save_session=False,
+        csrf=False,
     )
     def oauth_metadata(self, **kw):
         base = self._base_url()
@@ -131,7 +135,7 @@ class MCPOAuthController(http.Controller):
             '/.well-known/oauth-protected-resource/mcp',
         ],
         type='http', auth='public', methods=['GET'],
-        csrf=False, save_session=False,
+        csrf=False,
     )
     def oauth_protected_resource(self, **kw):
         base = self._base_url()
@@ -149,7 +153,7 @@ class MCPOAuthController(http.Controller):
     @http.route(
         '/mcp/oauth/register',
         type='http', auth='public', methods=['POST'],
-        csrf=False, save_session=False,
+        csrf=False,
     )
     def oauth_register(self, **kw):
         try:
@@ -173,7 +177,7 @@ class MCPOAuthController(http.Controller):
     @http.route(
         '/mcp/oauth/authorize',
         type='http', auth='public', methods=['GET'],
-        csrf=False, save_session=True,
+        csrf=False,
     )
     def oauth_authorize_get(
         self, response_type=None, client_id=None, redirect_uri=None,
@@ -193,8 +197,9 @@ class MCPOAuthController(http.Controller):
         uid = self._session_uid()
         if not uid:
             return_url = request.httprequest.url
-            return request.redirect(
-                '/web/login?redirect=' + urllib.parse.quote(return_url, safe='')
+            return werkzeug.utils.redirect(
+                '/web/login?redirect=' + urllib.parse.quote(return_url, safe=''),
+                303,
             )
 
         return request.render('muk_mcp.oauth_authorize_form', {
@@ -211,7 +216,7 @@ class MCPOAuthController(http.Controller):
     @http.route(
         '/mcp/oauth/authorize',
         type='http', auth='public', methods=['POST'],
-        csrf=False, save_session=True,
+        csrf=False,
     )
     def oauth_authorize_post(
         self, client_id=None, redirect_uri=None, state=None,
@@ -242,11 +247,9 @@ class MCPOAuthController(http.Controller):
                 'error': 'access_denied',
                 'state': state or '',
             })
-            # local=False: redirect_uri points at the external client
-            # (e.g. https://claude.ai/...). Odoo strips the host when
-            # local=True (the default), which would send the browser to
-            # this server's own path instead of back to the client.
-            return request.redirect(f'{redirect_uri}?{params}', local=False)
+            # redirect_uri points at the external client (e.g.
+            # https://claude.ai/...), so use a plain absolute redirect.
+            return werkzeug.utils.redirect(f'{redirect_uri}?{params}', 303)
 
         # The token identity is bound to the authenticated browser user,
         # NOT to whoever owns the client_id. This lets a single org-wide
@@ -263,17 +266,16 @@ class MCPOAuthController(http.Controller):
         params = {'code': raw_code}
         if state:
             params['state'] = state
-        # local=False so the browser is sent back to the external client
-        # (Claude) with the code, instead of to this server's own domain.
-        return request.redirect(
-            f'{redirect_uri}?{urllib.parse.urlencode(params)}',
-            local=False,
+        # Absolute redirect so the browser is sent back to the external
+        # client (Claude) with the code.
+        return werkzeug.utils.redirect(
+            f'{redirect_uri}?{urllib.parse.urlencode(params)}', 303,
         )
 
     @http.route(
         '/api/mcp/auth_callback',
         type='http', auth='public', methods=['GET'],
-        csrf=False, save_session=False,
+        csrf=False,
     )
     def auth_callback(
         self, code=None, state=None, error=None,
@@ -323,7 +325,7 @@ class MCPOAuthController(http.Controller):
     @http.route(
         '/mcp/oauth/token',
         type='http', auth='public', methods=['POST'],
-        csrf=False, save_session=False,
+        csrf=False,
     )
     def oauth_token(
         self, grant_type=None, code=None, redirect_uri=None,

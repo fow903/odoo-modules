@@ -6,6 +6,8 @@ from odoo import api, models, SUPERUSER_ID
 from odoo.tools.misc import str2bool
 from odoo.http import request
 
+from odoo.addons.muk_mcp.core.dispatcher import is_mcp_request, make_json_response
+
 
 class IrHttp(models.AbstractModel):
 
@@ -17,7 +19,7 @@ class IrHttp(models.AbstractModel):
 
     @classmethod
     def _auth_method_mcp(cls):
-        env = api.Environment(request.env.cr, SUPERUSER_ID, {})
+        env = api.Environment(request.cr, SUPERUSER_ID, {})
         token = None
         header = request.httprequest.headers.get('Authorization', '')
         match = re.match(r'^bearer\s+(.+)$', header, re.IGNORECASE)
@@ -30,38 +32,36 @@ class IrHttp(models.AbstractModel):
             )
         if not token:
             raise werkzeug.exceptions.Unauthorized()
-        if not (mcp_key := env['muk_mcp.key'].authenticate(token)):
+        mcp_key = env['muk_mcp.key'].authenticate(token)
+        if not mcp_key:
             raise werkzeug.exceptions.Unauthorized()
-        request.update_env(user=mcp_key.user_id.id)
+        request.uid = mcp_key.user_id.id
         annotate = env['ir.config_parameter'].get_param(
             'muk_mcp.annotate_messages', 'True',
         )
         request._mcp_key = mcp_key
         if str2bool(annotate, default=True):
-            request.update_env(context={
-                'mcp_name': mcp_key.name,
-            })
-        request.session.can_save = False
+            request.context = dict(
+                request.context, mcp_name=mcp_key.name,
+            )
 
     @classmethod
-    def _handle_error(cls, exception):
-        if (
-            getattr(request, 'dispatcher', None) and
-            request.dispatcher.routing_type == 'mcp'
-        ):
+    def _handle_exception(cls, exception):
+        if is_mcp_request(request):
             if isinstance(exception, werkzeug.exceptions.HTTPException):
                 headers = {}
                 if exception.code == 401:
                     # RFC 9728 §5.1: point clients at the protected resource
                     # metadata so they can discover the authorization server.
-                    base = request.env['ir.config_parameter'].sudo().get_param(
+                    env = api.Environment(request.cr, SUPERUSER_ID, {})
+                    base = env['ir.config_parameter'].get_param(
                         'web.base.url', ''
                     ).rstrip('/')
                     headers['WWW-Authenticate'] = (
                         'Bearer resource_metadata='
                         f'"{base}/.well-known/oauth-protected-resource"'
                     )
-                return request.make_json_response({
+                return make_json_response({
                     'jsonrpc': '2.0',
                     'id': None,
                     'error': {
@@ -69,4 +69,12 @@ class IrHttp(models.AbstractModel):
                         'message': str(exception),
                     },
                 }, status=exception.code, headers=headers)
-        return super()._handle_error(exception)
+            return make_json_response({
+                'jsonrpc': '2.0',
+                'id': None,
+                'error': {
+                    'code': -32603,
+                    'message': str(exception),
+                },
+            }, status=500)
+        return super()._handle_exception(exception)

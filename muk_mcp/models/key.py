@@ -2,7 +2,6 @@ import hashlib
 import secrets
 
 from odoo import api, fields, models
-from odoo.tools import SQL
 from odoo.tools.misc import mute_logger
 
 from odoo.addons.muk_mcp.tools.rate_limit import rate_limiter
@@ -12,6 +11,7 @@ class MCPKey(models.Model):
 
     _name = 'muk_mcp.key'
     _description = "MCP API Key"
+    _order = 'create_date desc, id desc'
     _auto = False
 
     # ----------------------------------------------------------
@@ -80,9 +80,9 @@ class MCPKey(models.Model):
     # ----------------------------------------------------------
 
     def init(self):
-        self.env.cr.execute(SQL(
+        self.env.cr.execute(
             """
-            CREATE TABLE IF NOT EXISTS %s (
+            CREATE TABLE IF NOT EXISTS "{table}" (
                 id SERIAL PRIMARY KEY,
                 name VARCHAR NOT NULL,
                 key_hash VARCHAR(64) NOT NULL,
@@ -97,14 +97,12 @@ class MCPKey(models.Model):
                 create_uid INTEGER REFERENCES res_users(id) ON DELETE SET NULL,
                 write_uid INTEGER REFERENCES res_users(id) ON DELETE SET NULL
             )
-            """,
-            SQL.identifier(self._table),
-        ))
-        self.env.cr.execute(SQL(
-            "CREATE INDEX IF NOT EXISTS %s ON %s (key_hash)",
-            SQL.identifier(f'{self._table}_key_hash_idx'),
-            SQL.identifier(self._table),
-        ))
+            """.format(table=self._table)
+        )
+        self.env.cr.execute(
+            'CREATE INDEX IF NOT EXISTS "{table}_key_hash_idx" '
+            'ON "{table}" (key_hash)'.format(table=self._table)
+        )
 
     # ----------------------------------------------------------
     # Helper
@@ -148,30 +146,27 @@ class MCPKey(models.Model):
 
     @api.model
     def authenticate(self, token):
-        table = SQL.identifier(self._table)
-        self.env.cr.execute(SQL(
+        self.env.cr.execute(
             """
-            SELECT id FROM %s
+            SELECT id FROM "{table}"
             WHERE key_hash = %s AND active = true
             LIMIT 1
-            """,
-            table,
-            self._hash_key(token),
-        ))
+            """.format(table=self._table),
+            (self._hash_key(token),),
+        )
         row = self.env.cr.fetchone()
         if not row:
             return None
         try:
             with mute_logger('odoo.sql_db'), self.env.cr.savepoint():
-                self.env.cr.execute(SQL(
+                self.env.cr.execute(
                     """
-                    UPDATE %s
+                    UPDATE "{table}"
                     SET last_used = NOW() AT TIME ZONE 'UTC'
                     WHERE id = %s
-                    """,
-                    table,
-                    row[0],
-                ))
+                    """.format(table=self._table),
+                    (row[0],),
+                )
         except Exception:
             pass
         return self.sudo().browse(row[0])

@@ -3,7 +3,7 @@ import json
 
 from odoo import fields, models
 from odoo.tools import config
-from odoo.tools.json import json_default
+from odoo.tools.date_utils import json_default
 
 
 def limit_text_size(text, default=25000):

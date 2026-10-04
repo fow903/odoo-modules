@@ -4,8 +4,6 @@ import uuid
 
 from odoo import fields, models, _
 
-from odoo.addons.base.models.res_users import check_identity
-
 
 class ResUsers(models.Model):
 
@@ -52,7 +50,6 @@ class ResUsers(models.Model):
     # Actions
     # ----------------------------------------------------------
 
-    @check_identity
     def action_generate_mcp_key(self):
         return {
             'type': 'ir.actions.act_window',
@@ -64,6 +61,7 @@ class ResUsers(models.Model):
         }
 
     def action_revoke_mcp_sessions(self):
+        self.ensure_one()
         sessions = self.env['muk_mcp.session'].sudo().search([
             ('user_id', '=', self.id),
             ('active', '=', True),
@@ -71,7 +69,6 @@ class ResUsers(models.Model):
         sessions.write({'active': False})
         return {'type': 'ir.actions.client', 'tag': 'reload'}
 
-    @check_identity
     def action_generate_oauth_credentials(self):
         self.ensure_one()
         raw_secret = secrets.token_urlsafe(32)
