@@ -1,3 +1,9 @@
+`1.3.1`
+-------
+
+- Don't include web.dark_mode_variables, it breaks the dark bundles when
+  enterprise view modules (e.g. web_gantt) are installed without web_enterprise
+
 `1.3.0`
 -------
 

@@ -5,7 +5,7 @@
         This module offers a mobile compatible design for Odoo Community. 
         Furthermore it allows the user to define some design preferences.
     ''',
-    'version': '18.0.1.3.0',
+    'version': '18.0.1.3.1',
     'category': 'Themes/Backend', 
     'license': 'LGPL-3', 
     'author': 'MuK IT',
@@ -48,7 +48,11 @@
             ('remove', 'muk_web_theme/static/src/**/*.dark.scss'),
         ],
         'web.assets_backend_lazy_dark': [
-            ('include', 'web.dark_mode_variables'),
+            (
+                'before',
+                'web/static/src/scss/primary_variables.scss',
+                'muk_web_theme/static/src/scss/primary_variables.dark.scss'
+            ),
             (
                 'before',
                 'web/static/src/scss/bootstrap_overridden.scss',
@@ -60,15 +64,12 @@
                 'muk_web_theme/static/src/scss/bs_functions_overridden.dark.scss'
             ),
         ],
-        'web.dark_mode_variables': [
+        'web.assets_web_dark': [
             (
                 'before',
                 'web/static/src/scss/primary_variables.scss',
                 'muk_web_theme/static/src/scss/primary_variables.dark.scss'
             ),
-        ],
-        'web.assets_web_dark': [
-            ('include', 'web.dark_mode_variables'),
             (
                 'before',
                 'web/static/src/scss/bootstrap_overridden.scss',
