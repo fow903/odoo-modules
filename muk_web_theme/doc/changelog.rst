@@ -1,3 +1,9 @@
+`1.3.0`
+-------
+
+- Add Dark Mode support with a switch in the user menu
+- Allow users to reorder the apps in the apps menu and the appsbar via drag and drop
+
 `1.2.0`
 -------
 

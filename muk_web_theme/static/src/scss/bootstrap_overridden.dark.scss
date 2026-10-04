@@ -1,0 +1,59 @@
+// Dark Mode
+
+// Colors
+
+$danger: $o-danger !default;
+$min-contrast-ratio: 4.5 !default;
+
+// Links
+
+$link-shade-percentage: 15% !default;
+$link-hover-color: lighten($o-main-link-color, 10%) !default;
+
+// Components
+
+$box-shadow: 0 .5rem 1rem rgba(#000000, .45) !default;
+$box-shadow-sm: 0 .125rem .25rem rgba(#000000, .3) !default;
+$box-shadow-lg: 0 1rem 3rem rgba(#000000, .45) !default;
+$box-shadow-inset: inset 0 1px 2px rgba(#000000, .3) !default;
+
+$component-active-bg: $o-gray-300 !default;
+
+// Typography
+
+$mark-bg: #5C4A1E !default;
+$mark-color: $o-gray-900 !default;
+
+// Tables
+
+$table-bg: $o-view-background-color !default;
+$table-border-color: $o-gray-300 !default;
+$table-group-separator-color: $o-gray-300 !default;
+$table-striped-bg-factor: .03 !default;
+$table-hover-bg-factor: .08 !default;
+$table-active-bg-factor: .1 !default;
+
+// Dropdowns
+
+$dropdown-bg: $o-gray-200 !default;
+$dropdown-link-hover-bg: rgba(#FFFFFF, .06) !default;
+
+// Popovers & Tooltips
+
+$popover-bg: $o-gray-200 !default;
+$tooltip-bg: $o-gray-400 !default;
+$tooltip-color: $o-gray-900 !default;
+
+// Toasts
+
+$toast-background-color: rgba($o-gray-200, .9) !default;
+
+// Navs
+
+$nav-tabs-link-active-bg: $o-view-background-color !default;
+$nav-pills-link-active-color: #FFFFFF !default;
+
+// Forms
+
+$form-switch-checked-color: #FFFFFF !default;
+$input-placeholder-color: $o-gray-500 !default;

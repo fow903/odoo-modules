@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<templates xml:space="preserve">
+
+	<t 
+		t-name="muk_web_theme.AppsBar"
+		t-inherit="muk_web_appsbar.AppsBar" 
+		t-inherit-mode="extension" 
+	>
+		<xpath expr="//ul[hasclass('mk_apps_sidebar_menu')]" position="attributes">
+			<attribute name="t-ref">appsList</attribute>
+		</xpath>
+		<xpath expr="//ul[hasclass('mk_apps_sidebar_menu')]//li" position="attributes">
+			<attribute name="t-att-data-menu-xmlid">app.xmlid</attribute>
+		</xpath>
+		<xpath expr="//ul[hasclass('mk_apps_sidebar_menu')]//li/a" position="attributes">
+			<attribute name="draggable">false</attribute>
+		</xpath>
+		<xpath expr="//img[hasclass('mk_apps_sidebar_icon')][@t-if]" position="attributes">
+			<attribute name="draggable">false</attribute>
+		</xpath>
+		<xpath expr="//img[hasclass('mk_apps_sidebar_icon')][@t-else]" position="attributes">
+			<attribute name="draggable">false</attribute>
+		</xpath>
+	</t>
+	
+</templates>

@@ -1,0 +1,11 @@
+// Dark Mode
+// White and black are swapped, so tinting has to mix with the dark
+// color and shading with the light one.
+
+@function tint-color($color, $weight) {
+    @return mix(#000000, $color, $weight);
+}
+
+@function shade-color($color, $weight) {
+    @return mix(#FFFFFF, $color, $weight);
+}

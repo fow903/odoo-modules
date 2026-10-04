@@ -74,6 +74,32 @@
                             class="btn-link"
                         />
                     </setting>
+	    			<setting string="Dark Mode Colors" help="Customize the colors used when dark mode is enabled">
+                     	<div class="w-50 row">
+                            <label for="color_brand_dark" string="Brand" class="d-block w-75 py-2"/>
+                            <field name="color_brand_dark" class="d-block w-25 p-0 m-0" widget="color"/>
+                        </div>
+                     	<div class="w-50 row">
+                            <label for="color_primary_dark" string="Primary" class="d-block w-75 py-2"/>
+                            <field name="color_primary_dark" class="d-block w-25 p-0 m-0" widget="color"/>
+                        </div>
+                     	<div class="w-50 row">
+                            <label for="color_info_dark" string="Info" class="d-block w-75 py-2"/>
+                            <field name="color_info_dark" class="d-block w-25 p-0 m-0" widget="color"/>
+                        </div>
+                     	<div class="w-50 row">
+                            <label for="color_success_dark" string="Success" class="d-block w-75 py-2"/>
+                            <field name="color_success_dark" class="d-block w-25 p-0 m-0" widget="color"/>
+                        </div>
+                     	<div class="w-50 row">
+                            <label for="color_warning_dark" string="Warning" class="d-block w-75 py-2"/>
+                            <field name="color_warning_dark" class="d-block w-25 p-0 m-0" widget="color"/>
+                        </div>
+                     	<div class="w-50 row">
+                            <label for="color_danger_dark" string="Danger" class="d-block w-75 py-2"/>
+                            <field name="color_danger_dark" class="d-block w-25 p-0 m-0" widget="color"/>
+                        </div>
+                    </setting>
 	    			<setting 
 	    				string="Background Image" 
 	    				company_dependent="1" 
