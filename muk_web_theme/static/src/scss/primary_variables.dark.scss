@@ -2,6 +2,19 @@
 // The light/dark colors are swapped so that the Bootstrap and Odoo
 // functions which mix colors with white or black keep working.
 
+// Functions
+
+// Darkens a background until the foreground reaches the given contrast ratio.
+@function mk-contrast-bg($background, $foreground: #FFFFFF, $min-ratio: 4.5) {
+    $color: $background;
+    $steps: 0;
+    @while contrast-ratio($color, $foreground) < $min-ratio and $steps < 30 {
+        $color: darken($color, 2%);
+        $steps: $steps + 1;
+    }
+    @return $color;
+}
+
 // Colors
 
 $o-white: #000000 !default;
@@ -60,19 +73,30 @@ $o-list-group-active-bg: mix($o-action, $o-gray-200, 35%) !default;
 
 $modal-backdrop-bg: $o-white !default;
 
+// Navbar
+// The navbar colors are based on $o-white/$o-black, which are swapped.
+
+$o-navbar-entry-color: rgba(#FFFFFF, .9) !default;
+$o-navbar-entry-color--hover: #FFFFFF !default;
+$o-navbar-entry-bg--hover: rgba(#FFFFFF, .08) !default;
+$o-navbar-badge-text-shadow: none !default;
+
 // Buttons
+
+$mk-dark-primary-bg: mk-contrast-bg($o-brand-primary) !default;
+$mk-dark-danger-bg: mk-contrast-bg($o-danger) !default;
 
 $o-btns-bs-override: () !default;
 $o-btns-bs-override: map-merge((
     "primary": (
-        background: $o-brand-primary,
-        border: $o-brand-primary,
+        background: $mk-dark-primary-bg,
+        border: $mk-dark-primary-bg,
         color: #FFFFFF,
-        hover-background: lighten($o-brand-primary, 6%),
-        hover-border: lighten($o-brand-primary, 6%),
+        hover-background: lighten($mk-dark-primary-bg, 6%),
+        hover-border: lighten($mk-dark-primary-bg, 6%),
         hover-color: #FFFFFF,
-        active-background: lighten($o-brand-primary, 12%),
-        active-border: lighten($o-brand-primary, 12%),
+        active-background: lighten($mk-dark-primary-bg, 12%),
+        active-border: lighten($mk-dark-primary-bg, 12%),
         active-color: #FFFFFF,
     ),
     "secondary": (
@@ -98,14 +122,14 @@ $o-btns-bs-override: map-merge((
         active-color: $o-gray-900,
     ),
     "danger": (
-        background: $o-danger,
-        border: $o-danger,
+        background: $mk-dark-danger-bg,
+        border: $mk-dark-danger-bg,
         color: #FFFFFF,
-        hover-background: lighten($o-danger, 6%),
-        hover-border: lighten($o-danger, 6%),
+        hover-background: lighten($mk-dark-danger-bg, 6%),
+        hover-border: lighten($mk-dark-danger-bg, 6%),
         hover-color: #FFFFFF,
-        active-background: lighten($o-danger, 12%),
-        active-border: lighten($o-danger, 12%),
+        active-background: lighten($mk-dark-danger-bg, 12%),
+        active-border: lighten($mk-dark-danger-bg, 12%),
         active-color: #FFFFFF,
     ),
 ), $o-btns-bs-override);
@@ -116,11 +140,11 @@ $o-btns-bs-outline-override: map-merge((
         background: transparent,
         border: lighten($o-brand-primary, 15%),
         color: lighten($o-brand-primary, 15%),
-        hover-background: $o-brand-primary,
-        hover-border: $o-brand-primary,
+        hover-background: $mk-dark-primary-bg,
+        hover-border: $mk-dark-primary-bg,
         hover-color: #FFFFFF,
-        active-background: lighten($o-brand-primary, 12%),
-        active-border: lighten($o-brand-primary, 12%),
+        active-background: lighten($mk-dark-primary-bg, 6%),
+        active-border: lighten($mk-dark-primary-bg, 6%),
         active-color: #FFFFFF,
     ),
     "secondary": (

@@ -1,0 +1,6 @@
+// Dark Mode
+// The navbar shares the background of the appsbar so that the whole
+// frame of the webclient has a single tone.
+
+$o-navbar-background: $mk-appbar-background !default;
+$o-navbar-border-bottom: 1px solid rgba(#FFFFFF, .06) !default;

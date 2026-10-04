@@ -1,0 +1,14 @@
+.mk_apps_sidebar_panel .mk_apps_sidebar .mk_apps_sidebar_menu {
+    > li > a {
+        border-left: 3px solid transparent;
+    }
+    > li:hover > a {
+        background: rgba(#FFFFFF, .06);
+        color: #FFFFFF;
+    }
+    > li.active > a {
+        background: rgba($mk-appbar-active, .22);
+        border-left-color: $mk-appbar-active;
+        color: #FFFFFF;
+    }
+}
