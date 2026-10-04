@@ -1,3 +1,8 @@
+`1.3.2`
+-------
+
+- Improve the dark mode contrast of the navbar, the appsbar and the buttons
+
 `1.3.1`
 -------
 

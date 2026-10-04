@@ -5,7 +5,7 @@
         This module offers a mobile compatible design for Odoo Community. 
         Furthermore it allows the user to define some design preferences.
     ''',
-    'version': '18.0.1.3.1',
+    'version': '18.0.1.3.2',
     'category': 'Themes/Backend', 
     'license': 'LGPL-3', 
     'author': 'MuK IT',
@@ -55,6 +55,11 @@
             ),
             (
                 'before',
+                'web/static/src/webclient/navbar/navbar.variables.scss',
+                'muk_web_theme/static/src/scss/navbar.variables.dark.scss'
+            ),
+            (
+                'before',
                 'web/static/src/scss/bootstrap_overridden.scss',
                 'muk_web_theme/static/src/scss/bootstrap_overridden.dark.scss'
             ),
@@ -69,6 +74,11 @@
                 'before',
                 'web/static/src/scss/primary_variables.scss',
                 'muk_web_theme/static/src/scss/primary_variables.dark.scss'
+            ),
+            (
+                'before',
+                'web/static/src/webclient/navbar/navbar.variables.scss',
+                'muk_web_theme/static/src/scss/navbar.variables.dark.scss'
             ),
             (
                 'before',
