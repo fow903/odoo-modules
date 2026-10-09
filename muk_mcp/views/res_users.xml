@@ -30,6 +30,53 @@
 						<button name="action_revoke_mcp_sessions" string="Revoke all sessions" type="object" class="btn btn-secondary"/>
 					</div>
 				</group>
+				<group string="Claude Code Web (OAuth)">
+					<div class="text-muted" colspan="2">
+						Use these credentials in Claude Code Web — just enter the server URL and these credentials.
+					</div>
+					<div colspan="2" invisible="not mcp_oauth_client_id" class="mt-2">
+						<div class="row g-2 mb-3">
+							<div class="col-auto fw-bold text-muted" style="min-width:140px">Client ID</div>
+							<div class="col">
+								<field name="mcp_oauth_client_id" widget="CopyClipboardChar" readonly="1" nolabel="1"/>
+							</div>
+						</div>
+						<div class="row g-2">
+							<div class="col-auto fw-bold text-muted" style="min-width:140px">Client Secret</div>
+							<div class="col" invisible="not mcp_oauth_client_secret_prefix">
+								<field name="mcp_oauth_client_secret_prefix" readonly="1" nolabel="1" class="font-monospace"/>
+								<span class="ms-2 text-muted">... (hidden — regenerate to see again)</span>
+							</div>
+						</div>
+					</div>
+					<div colspan="2" class="mt-2 d-flex gap-2">
+						<button
+							name="action_generate_oauth_credentials"
+							type="object"
+							class="btn btn-secondary"
+							invisible="mcp_oauth_client_id"
+						>
+							Generate OAuth Credentials
+						</button>
+						<button
+							name="action_generate_oauth_credentials"
+							type="object"
+							class="btn btn-secondary"
+							invisible="not mcp_oauth_client_id"
+						>
+							Regenerate OAuth Credentials
+						</button>
+						<button
+							name="action_revoke_oauth_credentials"
+							type="object"
+							class="btn btn-outline-danger"
+							invisible="not mcp_oauth_client_id"
+							confirm="This will invalidate the current OAuth credentials. Any Claude Code Web connection using them will stop working."
+						>
+							Revoke
+						</button>
+					</div>
+				</group>
 			</xpath>
 		</field>
 	</record>

@@ -7,6 +7,7 @@ from . import test_export
 from . import test_integration
 from . import test_key
 from . import test_log
+from . import test_oauth
 from . import test_playground
 from . import test_protocol
 from . import test_rate_limit
